@@ -1,0 +1,21 @@
+
+i
+9app/src/main/java/com/example/openlibrary/MainActivity.kt,2\6\2615dc1d6e090116631b98c0037371e2ecd79772
+P
+ app/src/main/AndroidManifest.xml,8\c\8c55c3ccc257e5907959013f99656e4c8ec3903e
+D
+app/build.gradle.kts,d\2\d2a4383452aad84a18429a5844d31330a012a9e6
+a
+1app/src/main/java/com/example/openlibrary/Book.kt,4\d\4d2299414df1a0512dbb3d2f75663d8b65710634
+j
+:app/src/main/java/com/example/openlibrary/BookContainer.kt,9\b\9b77e13c4f00d10947aaa73d118f2518c1887984
+k
+;app/src/main/java/com/example/openlibrary/ui/theme/Theme.kt,9\3\93c96fc14110511e5637e6f0947229c75c91a9b8
+m
+=app/src/main/java/com/example/openlibrary/RetrofitInstance.kt,a\8\a89b7e27e930f4ddd75f9c6abce97c066f3ef96e
+h
+8app/src/main/java/com/example/openlibrary/BookService.kt,7\f\7fa91b6251efbbdca22e18ba8652def32cdfb145
+@
+build.gradle.kts,d\b\dbcff70658daf80b53ce624f6adcaa529df5ed8d
+p
+@app/src/main/java/com/example/openlibrary/BookDetailsActivity.kt,2\d\2d9dd1149b057efd2cc9ab5040eded1f62121714
