@@ -42,10 +42,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.openlibrary.ui.theme.OpenLibraryTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -107,6 +109,7 @@ class MainActivity : ComponentActivity() {
             booksApiCall.enqueue(object : Callback<BookContainer> {
                 override fun onResponse(call: Call<BookContainer>, response: Response<BookContainer>) {
                     val newBooks = response.body()?.books ?: emptyList()
+
                     onBooksLoaded(newBooks)
                 }
 
@@ -120,15 +123,26 @@ class MainActivity : ComponentActivity() {
 
     private fun prepareQuery(query: String): String {
         val queryParts = query.split("\\s+".toRegex())
-        return TextUtils.join("+", queryParts)
+        return TextUtils.join("+", queryParts) + "&page=1&limit=10"
     }
 
 
+    @Composable
+    fun AppBar(modifier: Modifier = Modifier, onSearch: (String) -> Unit) {
 
+
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp)) {
+
+             MySearchBar(modifier = modifier, onSearch = onSearch)
+
+        }
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun AppBar(modifier: Modifier = Modifier, onSearch: (String) -> Unit) {
+    fun MySearchBar(modifier: Modifier = Modifier, onSearch: (String) -> Unit){
         var searchQuery by remember { mutableStateOf("") }
         var isSearchVisible by remember { mutableStateOf(false) }
 
@@ -142,47 +156,41 @@ class MainActivity : ComponentActivity() {
             )
         )
 
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp)) {
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = { newValue ->
-                    searchQuery = newValue
-                },
-                onSearch = {
-                    onSearch(searchQuery)
-                    isSearchVisible = false
-                },
-                active = isSearchVisible,
-                onActiveChange = { active ->
-                    isSearchVisible = active
-                    if (!active) {
-                        searchQuery = ""
-                    }
-                },
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                enabled = true,
-                placeholder = {
-                    Text("Search books")
-                },
-                leadingIcon = {
-                    IconButton(onClick = { isSearchVisible = !isSearchVisible }) {
-                        Icon(Icons.Filled.Search, contentDescription = "Search")
-                    }
-                },
-                colors = searchColors,
-                content = {
-
+        SearchBar(
+            query = searchQuery,
+            onQueryChange = { newValue ->
+                searchQuery = newValue
+            },
+            onSearch = {
+                onSearch(searchQuery)
+                isSearchVisible = false
+            },
+            active = isSearchVisible,
+            onActiveChange = { active ->
+                isSearchVisible = active
+                if (!active) {
+                    searchQuery = ""
                 }
+            },
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            enabled = true,
+            placeholder = {
+                Text("Search books")
+            },
+            leadingIcon = {
+                IconButton(onClick = { isSearchVisible = !isSearchVisible }) {
+                    Icon(Icons.Filled.Search, contentDescription = "Search")
+                }
+            },
+            colors = searchColors,
+            content = {
 
-            )
-        }
+            }
+
+        )
     }
-
-
 
     @Composable
     fun BookList(book: List<Book>, modifier: Modifier = Modifier) {
@@ -254,21 +262,9 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                if (book.cover != null) {
-                    BookCoverImage(book)
-                    Log.d("MainActivity", "Book cover is not null")
-                }
-                else {
-                    val painter = painterResource(id = R.drawable.baseline_book_24)
-                    Image(
-                        painter = painter,
-                        contentDescription = "Book Cover",
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .size(54.dp)
-                    )
-                    Log.d("MainActivity", "Book cover is null")
-                }
+
+                BookCoverImage(book)
+
             }
 
         }
@@ -276,60 +272,35 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun BookCoverImage(book: Book) {
-        val painter = rememberImagePainter(
-            data = "$IMAGE_BASE_URL${book.cover}-S.jpg",
-            builder = {
-                placeholder(R.drawable.baseline_book_24)
-                error(R.drawable.baseline_book_24)
-            }
-        )
+        if (book.cover != null) {
+            val painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current)
+                    .data(data = "$IMAGE_BASE_URL${book.cover}-S.jpg")
+                    .apply(block = fun ImageRequest.Builder.() {
+                        placeholder(R.drawable.baseline_book_24)
+                        error(R.drawable.baseline_book_24)
+                    }).build()
+            )
 
-        Image(
-            painter = painter,
-            contentDescription = "Book Cover",
-            modifier = Modifier
-                .padding(16.dp)
-                .size(54.dp)
-        )
+            Image(
+                painter = painter,
+                contentDescription = "Book Cover",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(54.dp)
+            )
+        }
+        else{
+            val painter = painterResource(id = R.drawable.baseline_book_24)
+            Image(
+                painter = painter,
+                contentDescription = "Book Cover",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(54.dp)
+            )
+            Log.d("MainActivity", "Book cover is null")
+        }
     }
-
-
-//    @Preview(showBackground = true)
-//    @Composable
-//    fun GreetingPreview() {
-//        var books = List(100) { index ->
-//            Book(
-//                title = "Book $index",
-//                authors = listOf("Author $index"),
-//                cover = null,
-//                numberOfPages = null
-//            )
-//        }
-//        OpenLibraryTheme {
-//
-//            Scaffold(
-//                topBar = {
-//                    AppBar(
-//                        onSearch = { newQuery ->
-//                            searchBooks(newQuery) { newBooks ->
-//                                books = newBooks
-//                            }
-//                        }
-//                    )
-//                },
-//                content = { padding ->
-//                    Column(
-//                        modifier = Modifier
-//                            .padding(padding)
-//                    ) {
-//                        BookList(books, Modifier.padding(horizontal = 16.dp))
-//                    }
-//                },
-//                bottomBar = {
-//                    SnackbarHost(hostState = snackbarHostState)
-//                }
-//            )
-//       }
-//    }
 
 }
